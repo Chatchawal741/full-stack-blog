@@ -19,3 +19,9 @@ Currently, two official plugins are available:
 - [express@5.x.x](https://expressjs.com/en/5x/api.html)
 - [mongodb-nosql](https://www.mongodb.com/)
 - [mongoose](https://mongoosejs.com/) - tools for mongodb object modeling
+- [clerk-webhook](https://clerk.com/) - webhook listening events
+- [ngrok](https://ngrok.com/) - forwarding localhost URL through ngrok http
+#### verify webhook request using svix
+```
+npm install svix
+```
