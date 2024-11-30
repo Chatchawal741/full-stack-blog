@@ -4,6 +4,12 @@ import mongoose from "mongoose";
 // auto generate ID
 const postSchema = new Schema(
   {
+    // get object from user-model
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     img: {
       type: String,
     },
