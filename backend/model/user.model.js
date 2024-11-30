@@ -4,6 +4,11 @@ import mongoose from "mongoose";
 // auto generate ID
 const userSchema = new Schema(
   {
+    clerkUserId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     username: {
       type: String,
       required: true,
