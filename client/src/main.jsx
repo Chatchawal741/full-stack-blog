@@ -2,6 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
+// react-toasify
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // components
 import Homepage from "./Routes/Homepage.jsx";
 import PostListPage from "./Routes/PostListPage.jsx";
@@ -10,19 +14,26 @@ import Register from "./Routes/Register.jsx";
 import Write from "./Routes/Write.jsx";
 import SinglePostPage from "./Routes/SinglePostPage.jsx";
 import MainLayout from "./Layout/MainLayout.jsx";
-// router-dom
+
+// Router-dom
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// import clerk provider
+// Import clerk provider
 import { ClerkProvider } from "@clerk/clerk-react";
+
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-// check if publishable key exists
+
+// ReactQuery
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
+
+// Check if publishable key exists
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
-// router
+// Router
 const router = createBrowserRouter([
   {
     element: <MainLayout />,
@@ -57,8 +68,13 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    {/* Clerk login-logout */}
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <RouterProvider router={router} />
+      {/* Wrap with react-query */}
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ToastContainer position="bottom-right" />
+      </QueryClientProvider>
     </ClerkProvider>
   </StrictMode>
 );
