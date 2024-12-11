@@ -5,7 +5,7 @@ function Image({ src, className, w, h, alt }) {
     <>
       <IKImage
         urlEndpoint={import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT}
-        path={src}
+        path={src || null}
         loading="lazy"
         className={className}
         // placeholder loading
