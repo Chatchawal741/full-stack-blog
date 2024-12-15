@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 // upload auth
-router.get("/upload-auth", uploadAuth);
+router.get("/auth", uploadAuth);
 
 router.get("/", getPosts);
 router.get("/:slug", getPost);
