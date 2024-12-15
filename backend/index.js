@@ -6,13 +6,6 @@ import connectDB from "./lib/connectDB.js";
 import clerkRouter from "./routes/webhook.route.js";
 import { clerkMiddleware } from "@clerk/express";
 import cors from "cors";
-import ImageKit from "imagekit";
-
-const imagekit = new ImageKit({
-  urlEndpoint: "<YOUR_IMAGEKIT_URL_ENDPOINT>",
-  publicKey: "<YOUR_IMAGEKIT_PUBLIC_KEY>",
-  privateKey: "<YOUR_IMAGEKIT_PRIVATE_KEY>",
-});
 
 const app = express();
 const PORT = 3000;
