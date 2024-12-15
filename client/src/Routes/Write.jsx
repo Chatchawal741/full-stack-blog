@@ -2,15 +2,35 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import "react-quill-new/dist/quill.snow.css";
 import ReactQuill from "react-quill-new";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Upload from "../components/Upload";
+import Image from "../components/Image";
 
 function Write() {
   const { isLoaded, isSignedIn } = useUser();
   const [content, setContent] = useState("");
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const [cover, setCover] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [image, setImage] = useState("");
+  const [video, setVideo] = useState("");
+
+  useEffect(() => {
+    image &&
+      setContent(
+        (prev) => prev + `<p class="w-12"><image src="${image.url}"/></p>`
+      );
+  }, [image]);
+
+  useEffect(() => {
+    video &&
+      setContent(
+        (prev) => prev + `<p><iframe class="ql-video" src="${video.url}"/></p>`
+      );
+  }, [video]);
 
   const mutation = useMutation({
     mutationFn: async (newPost) => {
@@ -29,7 +49,9 @@ function Write() {
     onSuccess: async (res) => {
       toast.success("Post has been created");
       const data = await res.json();
-      navigate(`/${data.slug}`);
+      console.log("res data", data);
+
+      // navigate(`/${data.slug}`);
     },
   });
 
@@ -44,18 +66,19 @@ function Write() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    if (!formData) {
-      return false;
-    }
 
     const data = {
+      img: cover.filePath || "",
       title: formData.get("title"),
       catagory: formData.get("catagory"),
       desc: formData.get("desc"),
       content: content,
     };
+    if (data.title == "") {
+      return false;
+    }
 
-    console.log(data);
+    console.log("Data", data);
 
     mutation.mutate(data);
   };
@@ -69,12 +92,24 @@ function Write() {
         onSubmit={handleSubmit}
         className="flex flex-col gap-6  flex-1 mb-6"
       >
-        <button
-          type="button"
-          className="w-max p-2 shadow-md rounded-xl text-sm text-gray-500 bg-white"
-        >
-          Adds a cover image
-        </button>
+        {cover.filePath && (
+          <Image
+            src={cover.filePath || null}
+            w={"200"}
+            h={"200"}
+            className={"rounded-2xl"}
+          />
+        )}
+        <div className="flex">
+          <Upload setData={setCover} setProgress={setProgress} type={"image"}>
+            <button
+              type="button"
+              className="w-max p-2 shadow-md rounded-xl text-sm text-gray-500 bg-white"
+            >
+              {cover.filePath ? "Change cover image" : "Adds a cover image"}
+            </button>
+          </Upload>
+        </div>
         <input
           type="text"
           placeholder="My Awesome Story"
@@ -94,32 +129,38 @@ function Write() {
             <option value="marketing">Marketing</option>
           </select>
         </div>
-
         <textarea
           name="desc"
           placeholder="A short Description"
           className="p-4 rounded-xl bg-white shadow-md"
         />
-        <div className="flex">
+        <div className="flex flex-1">
           <div className="flex flex-col gap-2 mr-2">
-            <div className="cursor-pointer">🍪</div>
-            <div className="cursor-pointer">▶️</div>
+            <Upload setData={setImage} setProgress={setProgress} type={"image"}>
+              🖼️
+            </Upload>
+            <Upload setData={setVideo} setProgress={setProgress} type={"video"}>
+              ▶️
+            </Upload>
           </div>
           {/* text editor */}
           <ReactQuill
             theme="snow"
             className="flex-1 rounded-xl bg-white shadow-md"
             onChange={setContent}
+            value={content}
+            readOnly={progress > 0 && progress < 100}
           />
         </div>
         {/* submit button */}
         <button
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || (progress > 0 && progress < 100)}
           type="submit"
           className="bg-blue-800 text-white font-medium rounded-xl mt-4 p-2 w-36 disabled:bg-blue-400 disabled:cursor-not-allowed"
         >
           {mutation.isPending ? "Loading..." : "Send"}
         </button>
+        {"Progress:" + progress}
         {mutation.isError && <span>{mutation.error.message}</span>}
       </form>
     </div>
