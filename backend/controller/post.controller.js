@@ -1,3 +1,4 @@
+import ImageKit from "imagekit";
 import postModel from "../model/post.model.js";
 import userModel from "../model/user.model.js";
 // Get all posts
@@ -22,16 +23,19 @@ export const createPost = async (req, res) => {
 
   const user = await userModel.findOne({ clerkUserId: clerkUserId });
 
+  // replace spaces with '-'
   let slug = req.body.title.replace(/ /g, "-").toLowerCase();
-  let existingSlug = await postModel.findOne({ slug });
-  let counter = 0;
+  let existingPost = await postModel.findOne({ slug });
+  let counter = 2;
+  let tempSlug = "";
 
-  while (existingSlug) {
-    let tempSlug = `${slug}-${counter}`;
+  while (existingPost) {
+    tempSlug = `${slug}-${counter}`;
+    existingPost = await postModel.findOne({ slug: tempSlug });
     counter++;
-    let slugQuery = await postModel.findOne({ slug: tempSlug });
-    existingSlug = slugQuery.slug === tempSlug;
   }
+
+  slug = tempSlug || slug;
 
   const newPost = new postModel({ user: user._id, slug, ...req.body });
   await newPost.save();
@@ -52,12 +56,20 @@ export const deletePost = async (req, res) => {
     _id: req.params.id,
     user: user._id,
   });
-
   if (!deletedPost) {
     return res.status(403).json("You can delete only your posts!");
   }
   res.status(200).json({ message: "Post has been Deleted" });
 };
 
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.IK_ENDPOINT,
+  publicKey: process.env.CLERK_PUBLISHABLE_KEY,
+  privateKey: process.env.IK_PRIVATE_KEY,
+});
+
 // upload image
-export const uploadAuth = async (req, res) => {};
+export const uploadAuth = async (req, res) => {
+  const result = imagekit.getAuthenticationParameters();
+  res.send(result);
+};
