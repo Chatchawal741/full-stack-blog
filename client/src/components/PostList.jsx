@@ -1,26 +1,49 @@
 import PostListItems from "./PostListItem";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
-const fetchPost = async () => {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/posts`);
+const fetchPosts = async ({ pageParam }) => {
+  console.log("pageParam", pageParam);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/posts?` +
+      new URLSearchParams({
+        page: pageParam,
+      }).toString()
+  );
+
   return await res.json();
 };
 
 function PostList() {
-  const { isPending, error, data } = useQuery({
-    queryKey: ["repoData"],
-    queryFn: () => fetchPost(),
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ["posts"],
+    queryFn: ({ pageParam = 1 }) => fetchPosts(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasMore ? pages.length + 1 : undefined,
   });
 
-  if (isPending) return "Loading...";
+  console.log("infinite scroll data", data);
 
-  if (error) return "An error has occurred: " + error.message;
+  const allPosts = data?.pages?.flatMap((page) => page.posts) || [];
 
-  console.log(data);
+  if (isFetching && !isFetchingNextPage) return "Loading...";
+
+  if (error) return "Something went wrong: " + error.message;
 
   return (
     <div className="flex flex-col gap-12 mb-8">
-      <PostListItems />
+      {allPosts.map((post) => (
+        <PostListItems key={post.id} post={post} />
+      ))}
     </div>
   );
 }
