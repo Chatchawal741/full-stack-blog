@@ -1,16 +1,27 @@
 import ImageKit from "imagekit";
 import postModel from "../model/post.model.js";
 import userModel from "../model/user.model.js";
+
 // Get all posts
 export const getPosts = async (req, res) => {
-  const posts = await postModel.find();
-  res.status(200).json(posts);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 2;
+
+  const posts = await postModel
+    .find()
+    .limit(limit)
+    .skip((page - 1) * limit); // 1-5, 5-10, 10-15
+
+  // check if more posts in DB
+  const totalPosts = await postModel.countDocuments();
+  const hasMore = page * limit < totalPosts;
+
+  res.status(200).json({ posts, hasMore });
 };
 
 // Get post with unique slug
 export const getPost = async (req, res) => {
   const post = await postModel.findOne({ slug: req.params.slug });
-
   res.status(200).json(post);
 };
 
